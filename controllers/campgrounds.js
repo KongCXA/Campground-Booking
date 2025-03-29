@@ -1,34 +1,79 @@
+const Campground = require('../models/Campground');
+
 //@desc   GET all campgrounds
 //@route  GET /api/v1/campgrounds
 //@access Public
-exports.getCampgrounds = (req, res, next) => {
-    res.status(200).json({ success: true, msg: 'Show all campgrounds' });
+exports.getCampgrounds = async (req, res, next) => {
+    try {
+        const campgrounds = await Campground.find();
+        res.status(200).json({ success: true, count: campgrounds.length, data: campgrounds });
+    } catch (err) {
+        res.status(400).json({ success: false });
+    }
 };
 
 //@desc   GET single campground
 //@route  GET /api/v1/campgrounds/:id
 //@access Public
-exports.getCampground = (req, res, next) => {
-    res.status(200).json({ success: true, msg: `Show campground ${req.params.id}` });
+exports.getCampground = async (req, res, next) => {
+    try {
+        const campground = await Campground.findById(req.params.id);
+
+        if (!campground) {
+            return res.status(400).json({ success: false });
+        }
+
+        res.status(200).json({ success: true, data: campground });
+    } catch (err) {
+        res.status(400).json({ success: false });
+    }
 };
 
 //@desc   Create new campground
 //@route  POST /api/v1/campgrounds
 //@access Private
-exports.createCampground = (req, res, next) => {
-    res.status(200).json({ success: true, msg: 'Create new campground' });
+exports.createCampground = async (req, res, next) => {
+    const campground = await Campground.create(req.body);
+    console.log(req.body);
+    res.status(200).json({
+        success: true,
+        data: campground
+    });
 };
 
 //@desc   UPDATE campground
 //@route  PUT /api/v1/campgrounds/:id
 //@access Private
-exports.updateCampground = (req, res, next) => {
-    res.status(200).json({ success: true, msg: `Update campground ${req.params.id}` });
+exports.updateCampground = async (req, res, next) => {
+    try {
+        const campground = await Campground.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true
+        });
+
+        if (!campground) {
+            return res.status(400).json({ success: false });
+        }
+
+        res.status(200).json({ success: true, data: campground });
+    } catch (err) {
+        res.status(400).json({ success: false });
+    }
 };
 
 //@desc   DELETE campground
 //@route  DELETE /api/v1/campgrounds/:id
 //@access Private
-exports.deleteCampground = (req, res, next) => {
-    res.status(200).json({ success: true, msg: `Delete campground ${req.params.id}` });
+exports.deleteCampground = async (req, res, next) => {
+    try {
+        const campground = await Campground.findByIdAndDelete(req.params.id);
+
+        if (!campground) {
+            return res.status(400).json({ success: false });
+        }
+
+        res.status(200).json({ success: true, data: {} });
+    } catch (err) {
+        res.status(400).json({ success: false });
+    }
 };
