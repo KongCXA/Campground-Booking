@@ -8,7 +8,13 @@ const CampgroundSchema = new mongoose.Schema({
         trim: true,
         maxlength:[50, 'Name cannot be more than 50 characters']
     },
-    //TODO: add more
+    address:{
+        type: String,
+        required: [true, 'Please add an address']
+    },
+    tel:{
+        type: String
+    },
 });
 
 module.exports=mongoose.model('Campground', CampgroundSchema);
