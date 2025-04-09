@@ -1,8 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
-
-
+const admin = require('firebase-admin');
+const path = require('path');
 
 //env vars
 dotenv.config({path:'config/config.env'});
@@ -10,8 +10,18 @@ dotenv.config({path:'config/config.env'});
 //Connect to database
 connectDB();
 
+// Init Firebase Admin SDK
+if (!admin.apps.length) {
+    const serviceAccountPath = path.join(__dirname, 'config/firebaseServiceAccountKey.json');
+  
+    admin.initializeApp({
+      credential: admin.credential.cert(require(serviceAccountPath)),
+    });
+}
+
 //Route files
 const campgrounds = require('./routes/campgrounds');
+const auth = require('./routes/auth');
 
 const app=express();
 
@@ -19,6 +29,8 @@ const app=express();
 app.use(express.json());
 
 app.use('/api/v1/campgrounds', campgrounds);
+app.use('/api/v1/auth', auth);
+
 
 const PORT=process.env.PORT || 5000;
 
