@@ -234,3 +234,73 @@ exports.deleteBooking = async (req, res, next) => {
       .json({ success: false, message: "Cannot delete Booking" });
   }
 };
+
+//@desc     Get admin dashboard summary
+//@route    GET /api/v1/bookings/dashboard
+//@access   Private (Admin only)
+exports.getDashboardSummary = async (req, res, next) => {
+  try {
+    // Check if user is admin
+    if (req.user.role !== "admin") {
+      return res.status(401).json({
+        success: false,
+        message: `User ${req.user.id} is not authorized to access the dashboard`,
+      });
+    }
+
+    const totalBookings = await Booking.countDocuments();
+
+    const bookingSummary = await Booking.aggregate([
+      {
+        $group: {
+          _id: "$campground",
+          bookingCount: { $sum: 1 },
+        },
+      },
+      {
+        $lookup: {
+          from: "campgrounds",
+          localField: "_id",
+          foreignField: "_id",
+          as: "campground",
+        },
+      },
+      {
+        $unwind: "$campground",
+      },
+      {
+        $project: {
+          campgroundId: "$_id",
+          campgroundName: "$campground.name",
+          bookingCount: 1,
+        },
+      },
+      {
+        $sort: {
+          bookingCount: -1, // Sort by booking count in descending order
+          campgroundName: 1, // Secondary sort by name alphabetically
+        },
+      },
+    ]);
+
+    // Format the response
+    const formattedSummary = bookingSummary.map((item) => ({
+      campgroundId: item.campgroundId.toString(),
+      campgroundName: item.campgroundName,
+      bookingCount: item.bookingCount,
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalBookings,
+        bookingSummary: formattedSummary,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Cannot retrieve dashboard summary" });
+  }
+};
