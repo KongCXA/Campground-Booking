@@ -107,12 +107,10 @@ exports.login = async (req, res) => {
 exports.getMe = async (req, res) => {
   try {
     const firebaseUser = req.user; // from middleware
-
-    let user = await User.findOne({ firebaseUid: firebaseUser.uid });
-
+    let user = await User.findOne({ firebaseUid: firebaseUser.firebaseUid });
     if (!user) {
       user = await User.create({
-        firebaseUid: firebaseUser.uid,
+        firebaseUid: firebaseUser.firebaseUid,
         name: firebaseUser.name || "No Name",
         phoneNumber: firebaseUser.phoneNumber,
         email: firebaseUser.email,
