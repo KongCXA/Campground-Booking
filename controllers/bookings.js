@@ -116,6 +116,21 @@ exports.addBooking = async (req, res, next) => {
       });
     }
 
+    // Prevent booking in the past
+    const today = new Date();
+    const bookingDate = new Date(req.body.bookingDate);
+
+    // Remove time for comparison
+    today.setHours(0, 0, 0, 0);
+    bookingDate.setHours(0, 0, 0, 0);
+
+    if (bookingDate < today) {
+      return res.status(400).json({
+        success: false,
+        message: "Booking date cannot be in the past.",
+      });
+    }
+
     let booking = await Booking.create(req.body);
     // Populate the campground field
     booking = await Booking.findById(booking._id).populate({
